@@ -14,8 +14,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 # All paths remain the same
 DATA_PATH = "data/"
 DB_FAISS_PATH = "vectorstore/db_faiss"
-EMBEDDING_MODEL = 'intfloat/multilingual-e5-large'
-LLM_MODEL = "Qwen/Qwen1.5-7B-Chat" # We stick with the stable 7B model
+EMBEDDING_MODEL = 'intfloat/multilingual-e5-large' # You can change this to any other embedding model you prefer
+LLM_MODEL = "Qwen/Qwen1.5-7B-Chat" #You can change this to any other model you prefer
 
 def get_safe_input(prompt: str) -> str:
     """

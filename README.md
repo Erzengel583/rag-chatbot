@@ -54,6 +54,7 @@ This project uses **Conda** to manage its environment.
 #### 1. Start a Jupyter Session
 ![Workflow](.github/images/Jupyter1.png)
 
+#### 2. 
 ```bash
 git clone https://github.com/Erzengel583/rag-chatbot
 cd rag-chatbot
@@ -73,5 +74,29 @@ Install all required packages from the `requirements.txt` file.
 ```bash
 pip install -r requirements.txt
 ```
-
+#### 5.(Optional)
 ---
+
+## Running the Chatbot
+
+#### 1.  
+```bash
+python app.py
+```
+#### 2. 
+
+
+## Customization (Models & Parameters)
+You can edit constants in `app.py`:
+* Embedding Model
+```python
+EMBEDDING_MODEL = 'intfloat/multilingual-e5-large'
+```
+→ Replace with any HuggingFace sentence-transformer model.
+
+* LLM
+```python
+LLM_MODEL = "Qwen/Qwen1.5-7B-Chat"
+```
+→ Replace with another HuggingFace chat model (e.g. Llama2).
+
