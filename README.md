@@ -90,38 +90,7 @@ ollama pull llama3
 
 For HPC environments, running Ollama inside a **Singularity container** is the recommended method for portability and stability.
 
-#### 1. Create the Singularity Definition File
-On your local computer, create a file named `ollama.def`. This file defines how to build the container.
-```sif
-Bootstrap: docker
-From: ollama/ollama:latest
-
-%description
-    This container runs the Ollama server and client.
-
-%runscript
-    # This executes when you use 'singularity run'.
-    # It passes all command-line arguments ($@) to the ollama command.
-    echo "Executing: ollama $@"
-    exec ollama "$@"
-
-%startscript
-    # This runs when you use 'singularity instance start'.
-    echo "Starting Ollama server..."
-    ollama serve
-```
-
-#### 2. Build and Transfer the Image
-Build the image on a machine where you have `sudo` permissions (like your local Linux computer) and copy it to the HPC.
-```bash
-# Build the image locally
-sudo singularity build ollama.sif ollama.def
-
-# Transfer the image to your HPC home directory
-scp ollama.sif your_username@hpc.cluster.edu:~/
-```
-
-#### 3. Run Ollama on a Compute Node
+#### 1. Run Ollama on a Compute Node
 After starting an interactive job on a GPU node, choose one of the following methods to run the Ollama server.
 
 **Method A: Using `singularity instance` (Recommended for Services)**
