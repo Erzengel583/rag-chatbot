@@ -55,6 +55,8 @@ rag-chatbot/
 
 #### 1. Start a Jupyter Session
 ![Workflow](.github/images/Jupyter1.png)
+
+
 Fill in the job configuration as shown below:
 
 * Name Job: Choose a descriptive name for your job (e.g., `rag-chatbot`).
