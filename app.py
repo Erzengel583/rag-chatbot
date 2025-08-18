@@ -2,96 +2,217 @@ import os
 import sys
 import torch
 import textwrap
+import hashlib
+from pathlib import Path
+from typing import List
 
-# LangChain and FAISS for retrieval part
+# --- LangChain and Document Processing ---
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import (
+    PyPDFLoader,
+    TextLoader,
+    UnstructuredFileLoader,
+)
+from langchain.docstore.document import Document
 
-# Hugging Face Transformers for the core LLM logic
+# --- Hugging Face Transformers ---
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-# --- Constants and Setup ---
-# All paths remain the same
+# ==============================================================================
+# --- 1. CONSTANTS AND CONFIGURATION ---
+# ==============================================================================
 DATA_PATH = "data/"
+PROCESSED_PATH = "processed_texts/" # Cache for processed text
 DB_FAISS_PATH = "vectorstore/db_faiss"
-EMBEDDING_MODEL = 'intfloat/multilingual-e5-large' # You can change this to any other embedding model you prefer
-LLM_MODEL = "Qwen/Qwen1.5-7B-Chat" #You can change this to any other model you prefer
+EMBEDDING_MODEL = 'intfloat/multilingual-e5-large'
+LLM_MODEL = "Qwen/Qwen1.5-7B-Chat"
+SUPPORTED_EXTENSIONS = ['.pdf', '.txt', '.doc', '.docx']
+
+# ==============================================================================
+# --- 2. HELPER FUNCTIONS (File Hashing, I/O, etc.) ---
+# ==============================================================================
+def ensure_directories_exist():
+    """Ensure required directories exist."""
+    for directory in [DATA_PATH, PROCESSED_PATH, os.path.dirname(DB_FAISS_PATH)]:
+        os.makedirs(directory, exist_ok=True)
+
+def get_file_hash(file_path: str) -> str:
+    """Generate an MD5 hash for a file's content."""
+    with open(file_path, 'rb') as f:
+        return hashlib.md5(f.read()).hexdigest()
+
+def load_processed_files_record() -> dict:
+    """Load the record of processed files and their hashes."""
+    record_file = os.path.join(PROCESSED_PATH, "processed_files.txt")
+    processed = {}
+    if os.path.exists(record_file):
+        with open(record_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                if '|' in line:
+                    parts = line.strip().split('|', 1)
+                    processed[parts[0]] = parts[1]
+    return processed
+
+def save_processed_files_record(processed: dict):
+    """Save the record of processed files and their hashes."""
+    record_file = os.path.join(PROCESSED_PATH, "processed_files.txt")
+    with open(record_file, 'w', encoding='utf-8') as f:
+        for file_path, file_hash in processed.items():
+            f.write(f"{file_path}|{file_hash}\n")
 
 def get_safe_input(prompt: str) -> str:
-    """
-    Reads input from the terminal as raw bytes and safely decodes it to UTF-8.
-    This prevents UnicodeDecodeError on terminals with non-standard encodings.
-    """
-    # Print the prompt using the configured stdout
+    """Reads input safely from the terminal, handling potential encoding issues."""
     print(prompt, end="", flush=True)
-    
-    # Read raw bytes from the standard input buffer
     buffer = sys.stdin.buffer
     line_bytes = buffer.readline()
+    return line_bytes.decode('utf-8', errors='replace').strip()
+
+# ==============================================================================
+# --- 3. DOCUMENT PROCESSING & VECTOR STORE CREATION ---
+# ==============================================================================
+def process_file(file_path: str) -> List[Document]:
+    """Dynamically process a file based on its extension."""
+    ext = os.path.splitext(file_path)[1].lower()
+    loaders = {
+        '.pdf': PyPDFLoader,
+        '.txt': TextLoader,
+        '.doc': UnstructuredFileLoader,
+        '.docx': UnstructuredFileLoader,
+    }
     
-    # Decode the bytes into a string, replacing any invalid characters
-    # instead of crashing.
-    text = line_bytes.decode('utf-8', errors='replace').strip()
-    return text
+    if ext not in loaders:
+        return []
+        
+    try:
+        # TextLoader needs an encoding argument
+        if ext == '.txt':
+            loader = loaders[ext](file_path, encoding='utf-8')
+        else:
+            loader = loaders[ext](file_path)
+            
+        documents = loader.load()
+        print(f"  ✓ Processed: {os.path.basename(file_path)}")
+        return documents
+    except Exception as e:
+        print(f"  ✗ Error processing {file_path}: {e}")
+        return []
 
+def create_vector_db():
+    """
+    Loads documents, processes new/modified ones, splits them, creates embeddings,
+    and builds/saves the FAISS vector store.
+    """
+    print("\n" + "="*50)
+    print("BUILDING/UPDATING VECTOR DATABASE")
+    print("="*50)
 
+    all_documents = []
+    processed_record = load_processed_files_record()
+    new_processed_record = processed_record.copy()
+    
+    files = [p for ext in SUPPORTED_EXTENSIONS for p in Path(DATA_PATH).glob(f"**/*{ext}")]
+    
+    if not files:
+        print(f"Warning: No supported files found in {DATA_PATH}. The chatbot will have no knowledge.")
+        return
+
+    print(f"Found {len(files)} files to check...")
+    
+    for file_path in files:
+        file_str = str(file_path)
+        current_hash = get_file_hash(file_str)
+        
+        if file_str in processed_record and processed_record[file_str] == current_hash:
+            # print(f"  → Unchanged: {os.path.basename(file_str)}")
+            continue # Skip unchanged files
+            
+        print(f"  → Processing new/modified: {os.path.basename(file_str)}")
+        docs = process_file(file_str)
+        if docs:
+            all_documents.extend(docs)
+            new_processed_record[file_str] = current_hash
+            
+    if not all_documents:
+        print("No new or modified documents to process. Vector store is up to date.")
+        print("="*50 + "\n")
+        return
+
+    print(f"\nSplitting {len(all_documents)} new/modified document(s) into chunks...")
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    texts = text_splitter.split_documents(all_documents)
+    print(f"✓ Split into {len(texts)} chunks.")
+
+    print("\nCreating embeddings...")
+    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL, model_kwargs={'device': 'cuda'})
+
+    if os.path.exists(DB_FAISS_PATH):
+        print("Updating existing FAISS vector store...")
+        db = FAISS.load_local(DB_FAISS_PATH, embeddings, allow_dangerous_deserialization=True)
+        db.add_documents(texts)
+    else:
+        print("Building new FAISS vector store...")
+        db = FAISS.from_documents(texts, embeddings)
+    
+    db.save_local(DB_FAISS_PATH)
+    save_processed_files_record(new_processed_record)
+    print(f"✓ Vector store saved to {DB_FAISS_PATH}")
+    print("="*50 + "\n")
+
+# ==============================================================================
+# --- 4. LLM AND RETRIEVER LOADING ---
+# ==============================================================================
+def load_llm_and_tokenizer():
+    """Loads the Qwen model and tokenizer."""
+    print(f"⏳ Loading LLM and Tokenizer: {LLM_MODEL}...")
+    model = AutoModelForCausalLM.from_pretrained(
+        LLM_MODEL,
+        torch_dtype=torch.bfloat16,
+        device_map="auto"
+    )
+    tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL)
+    print("✅ LLM and Tokenizer are ready.")
+    return model, tokenizer
 
 def setup_retriever():
     """Loads the vector store and embedding model to create a retriever."""
     print("⏳ Loading Embedding Model and Vector Store...")
-    
     if not os.path.exists(DB_FAISS_PATH):
         print(f"FATAL: Vector store not found at {DB_FAISS_PATH}")
-        print("Please run a script to build it first (e.g., build_vector_store.py).")
+        print("Please ensure there are documents in the 'data' folder and run the script again to build it.")
         sys.exit(1)
     
-    embeddings = HuggingFaceEmbeddings(
-        model_name=EMBEDDING_MODEL,
-        model_kwargs={'device': 'cuda'}
-    )
-    
-    db = FAISS.load_local(
-        DB_FAISS_PATH, 
-        embeddings, 
-        allow_dangerous_deserialization=True
-    )
-    
+    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL, model_kwargs={'device': 'cuda'})
+    db = FAISS.load_local(DB_FAISS_PATH, embeddings, allow_dangerous_deserialization=True)
     print("✅ Vector Store and Embeddings are ready.")
     return db.as_retriever(search_kwargs={'k': 5})
 
-def load_llm_and_tokenizer():
-    """Loads the Qwen model and tokenizer."""
-    print(f"⏳ Loading LLM and Tokenizer: {LLM_MODEL}...")
-    
-    model = AutoModelForCausalLM.from_pretrained(
-        LLM_MODEL,
-        torch_dtype=torch.bfloat16, # Use bfloat16 for better performance
-        device_map="auto"
-    )
-    tokenizer = AutoTokenizer.from_pretrained(LLM_MODEL)
-    
-    print("✅ LLM and Tokenizer are ready.")
-    return model, tokenizer
-
+# ==============================================================================
+# --- 5. MAIN CHAT APPLICATION ---
+# ==============================================================================
 def main():
     # Setup Encoding for Terminal
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
-    sys.stdin = open(sys.stdin.fileno(), mode='r', encoding='utf8', buffering=1)
     
-    # --- Step 1: Load all necessary components ---
+    # --- Step 1: Ensure directories exist and update knowledge base ---
+    ensure_directories_exist()
+    create_vector_db() # This will now build or update the DB as needed
+
+    # --- Step 2: Load all necessary components for chat ---
     retriever = setup_retriever()
     model, tokenizer = load_llm_and_tokenizer()
 
     print("\n" + "="*50)
-    print("💬 CHATBOT READY! (Model: Qwen1.5-7B-Chat)")
+    print(f"💬 CHATBOT READY! (Model: {LLM_MODEL})")
     print("="*50)
     print("Type your question and press Enter. Type 'exit' or 'quit' to end.")
     print("="*50 + "\n")
 
-    # --- Step 2: Main conversation loop ---
+    # --- Step 3: Main conversation loop ---
     while True:
         try:
-            user_question = input("🧑‍💻 Your Question: ")
+            user_question = get_safe_input("🧑‍💻 Your Question: ")
             if user_question.lower() in ["exit", "quit", "bye"]:
                 print("👋 Goodbye!")
                 break
@@ -100,34 +221,26 @@ def main():
 
             print("\n🤖 Assistant is thinking...")
 
-            # --- RAG Core Logic using Qwen's method ---
-            
-            # 1. Retrieve relevant documents
+            # --- RAG Core Logic ---
             docs = retriever.invoke(user_question)
             context = "\n\n".join([doc.page_content for doc in docs])
 
-            # 2. Create the prompt using the official chat template
             messages = [
                 {"role": "system", "content": "You are a helpful assistant. Use the provided context to answer the user's question. Answer in Thai."},
                 {"role": "user", "content": f"Based on the following context, answer the question.\n\nContext:\n{context}\n\nQuestion: {user_question}"}
             ]
             
             prompt_text = tokenizer.apply_chat_template(
-                messages,
-                tokenize=False,
-                add_generation_prompt=True
+                messages, tokenize=False, add_generation_prompt=True
             )
             
-            # 3. Tokenize the input
             model_inputs = tokenizer([prompt_text], return_tensors="pt").to(model.device)
 
-            # 4. Generate the response
             generated_ids = model.generate(
-                **model_inputs,
+                model_inputs.input_ids,
                 max_new_tokens=1024
             )
             
-            # 5. Decode the response, skipping the prompt part
             generated_ids = [
                 output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
             ]
@@ -135,13 +248,13 @@ def main():
 
             # --- Display results ---
             print("\n✅ Answer:")
-            wrapped_answer = textwrap.fill(response, width=100)
-            print(wrapped_answer)
+            print(textwrap.fill(response, width=100))
             
             print("\n📚 Sources:")
             for i, doc in enumerate(docs):
                 source_content_preview = doc.page_content[:120].replace('\n', ' ') + "..."
-                print(f"  [{i+1}] {source_content_preview}")
+                print(f"  [{i+1}] Source: {doc.metadata.get('source', 'N/A')}")
+                # print(f"      Preview: {source_content_preview}")
 
             print("-" * 50)
         except Exception as e:
