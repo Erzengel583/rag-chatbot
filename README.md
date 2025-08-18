@@ -1,6 +1,6 @@
-# Advanced RAG Chatbot with Caching & Multi-Format Support
+# RAG Chatbot with Caching & Multi-Format Support
 
-This project provides a powerful, open-source Retrieval-Augmented Generation (RAG) chatbot built with Python. It intelligently processes multiple document types (`.pdf`, `.docx`, `.txt`), uses an efficient caching system to ensure fast startups, and automatically detects file changes to keep its knowledge base perfectly up-to-date.
+This project provides open-source Retrieval-Augmented Generation (RAG) chatbot built with Python. It intelligently processes multiple document types (`.pdf`, `.docx`, `.txt`), uses an efficient caching system to ensure fast startups, and automatically detects file changes to keep its knowledge base perfectly up-to-date.
 
 The entire system is designed for easy use on a local machine and is optimized for deployment on High-Performance Computing (HPC) clusters using Singularity.
 
@@ -35,7 +35,7 @@ This workflow ensures that you only pay the "cost" of processing a complex docum
 
 ```
 rag-chatbot/
-├── data/                  # <-- Place your source documents here
+├── data/                  # <-- Place your source documents here(docx, pdf, txt)
 │   └── your_document.pdf
 ├── processed_texts/       # <-- Cached plain text versions of documents
 │   └── your_document_processed.txt
@@ -48,7 +48,7 @@ rag-chatbot/
 
 ---
 
-## 🚀 Local Setup and Installation (Conda)
+## Setup and Installation (Conda)
 
 This project uses **Conda** to manage its environment.
 
@@ -78,36 +78,16 @@ Install all required packages from the `requirements.txt` file.
 pip install -r requirements.txt
 ```
 
-#### 5. Download an Ollama LLM
-Ensure the Ollama application is running, then open a terminal and pull a model.
-```bash
-ollama pull llama3
-```
-
 ---
 
-## 🛰️ HPC Deployment with Singularity
+## Ollama Deployment with Singularity
 
-For HPC environments, running Ollama inside a **Singularity container** is the recommended method for portability and stability.
+For Jupyter Notebooks, running Ollama inside a **Singularity container** is the recommended method for portability and stability.
 
 #### 1. Run Ollama on a Compute Node
-After starting an interactive job on a GPU node, choose one of the following methods to run the Ollama server.
+After starting an interactive job on a compute node
 
-**Method A: Using `singularity instance` (Recommended for Services)**
-This method runs Ollama as a managed background service.
-
-```bash
-# Start the service instance with GPU access (--nv)
-singularity instance start --nv ollama.sif ollama-service
-
-# Pull your model by executing a command inside the instance
-singularity exec instance://ollama-service ollama pull llama3
-
-# When finished, stop the service cleanly
-singularity instance stop ollama-service
-```
-
-**Method B: Using `singularity run` (Direct Execution)**
+**Using `singularity run` **
 This method uses standard Linux commands to run the server in the background.
 
 ```bash
