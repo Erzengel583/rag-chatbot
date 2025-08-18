@@ -6,11 +6,11 @@ The entire system is designed for easy use on a local machine and is optimized f
 
 ##  Features
 
-* ** Multi-Document Support:** Ingests and understands various file formats, including **PDF**, **Microsoft Word** (`.doc`, `.docx`), and **plain text** (`.txt`).
-* ** Intelligent Caching:** Automatically saves a processed text version of complex files. On subsequent runs, it loads from this fast cache instead of reprocessing the original document, saving significant time.
-* ** Automatic Change Detection:** Uses **MD5 hashing** to detect if a source file has been modified. The chatbot only spends time reprocessing files that are new or have been changed, making knowledge base updates incredibly efficient.
-* ** HPC Ready:** Includes detailed, best-practice instructions for deploying the Ollama server in a containerized environment on HPC clusters using **Singularity**.
-* ** Fully Open-Source:** Built with leading open-source libraries like **LangChain**, **Ollama**, **FAISS**, and **Hugging Face** models.
+* **Multi-Document Support:** Ingests and understands various file formats, including **PDF**, **Microsoft Word** (`.doc`, `.docx`), and **plain text** (`.txt`).
+* **Intelligent Caching:** Automatically saves a processed text version of complex files. On subsequent runs, it loads from this fast cache instead of reprocessing the original document, saving significant time.
+* **Automatic Change Detection:** Uses **MD5 hashing** to detect if a source file has been modified. The chatbot only spends time reprocessing files that are new or have been changed, making knowledge base updates incredibly efficient.
+* **HPC Ready:** Includes detailed, best-practice instructions for deploying the Ollama server in a containerized environment on HPC clusters using **Singularity**.
+* **Fully Open-Source:** Built with leading open-source libraries like **LangChain**, **Ollama**, **FAISS**, and **Hugging Face** models.
 
 ---
 
@@ -59,7 +59,7 @@ This project uses **Conda** to manage its environment.
 
 #### 2. Clone the Repository
 ```bash
-git clone [https://github.com/Erzengel583/rag-chatbot](https://github.com/Erzengel583/rag-chatbot)
+git clone https://github.com/Erzengel583/rag-chatbot
 cd rag-chatbot
 ```
 
