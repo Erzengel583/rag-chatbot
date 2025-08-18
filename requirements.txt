@@ -1,0 +1,9 @@
+langchain
+langchain_community
+langchain_core
+faiss-cpu
+sentence-transformers
+ollama
+pypdf
+unstructured
+python-docx

@@ -1,0 +1,10 @@
+# Python and Conda environments
+/rag-chatbot-env/
+__pycache__/
+
+# Large data and cache files
+/vectorstore/
+/processed_texts/
+
+# Singularity Image Files
+*.sif
