@@ -2,6 +2,7 @@ import os
 import sys
 import torch
 import textwrap
+import re
 import hashlib
 from pathlib import Path
 from typing import List
@@ -188,6 +189,18 @@ def setup_retriever():
     print("✅ Vector Store and Embeddings are ready.")
     return db.as_retriever(search_kwargs={'k': 5})
 
+def detect_language(text: str) -> str:
+    """Detect dominant language (Thai or English) based on character ratio."""
+    thai_chars = re.findall(r'[\u0E00-\u0E7F]', text)  # Unicode block ภาษาไทย
+    eng_chars = re.findall(r'[A-Za-z]', text)
+
+    if len(eng_chars) == 0 and len(thai_chars) > 0:
+        return "thai"
+    if len(eng_chars) > 0 and (len(eng_chars) / max(1, (len(eng_chars)+len(thai_chars)))) >= 0.9:
+        return "english"
+    return "thai"   # fallback → ถือว่าเป็นไทย
+
+
 # ==============================================================================
 # --- 5. MAIN CHAT APPLICATION ---
 # ==============================================================================
@@ -202,6 +215,7 @@ def main():
     # --- Step 2: Load all necessary components for chat ---
     retriever = setup_retriever()
     model, tokenizer = load_llm_and_tokenizer()
+
 
     print("\n" + "="*50)
     print(f"💬 CHATBOT READY! (Model: {LLM_MODEL})")
@@ -219,6 +233,24 @@ def main():
             if not user_question.strip():
                 continue
 
+            # Detect language
+            lang = detect_language(user_question)
+
+            if lang == "thai":
+                system_prompt = (
+                    "คุณคือผู้ช่วยที่เป็นมิตร ตอบคำถามด้วยภาษาไทยเท่านั้น "
+                    "ใช้ข้อมูลจาก Context ด้านล่าง ถ้าไม่พบข้อมูล ให้ตอบว่า "
+                    "'ไม่พบข้อมูลในเอกสารที่ให้ไว้'"
+                )
+            else:
+                system_prompt = (
+                    "You are a helpful assistant. "
+                    "Answer ONLY in English. "
+                    "Use the provided context as your main source. "
+                    "If the context does not contain the answer, say: "
+                    "'No relevant information found in the provided documents.'"
+                )
+
             print("\n🤖 Assistant is thinking...")
 
             # --- RAG Core Logic ---
@@ -226,8 +258,8 @@ def main():
             context = "\n\n".join([doc.page_content for doc in docs])
 
             messages = [
-                {"role": "system", "content": "You are a helpful assistant. Use the provided context to answer the user's question. Answer in Thai."},
-                {"role": "user", "content": f"Based on the following context, answer the question.\n\nContext:\n{context}\n\nQuestion: {user_question}"}
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {user_question}"}
             ]
             
             prompt_text = tokenizer.apply_chat_template(
@@ -252,9 +284,7 @@ def main():
             
             print("\n📚 Sources:")
             for i, doc in enumerate(docs):
-                source_content_preview = doc.page_content[:120].replace('\n', ' ') + "..."
                 print(f"  [{i+1}] Source: {doc.metadata.get('source', 'N/A')}")
-                # print(f"      Preview: {source_content_preview}")
 
             print("-" * 50)
         except Exception as e:
