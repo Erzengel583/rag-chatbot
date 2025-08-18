@@ -64,16 +64,15 @@ Fill in the job configuration as shown below:
 * Conda Environment: Leave blank if you want to use system defaults, or provide your custom conda env.
 * Extra Modules: Add required modules such as `cuda/12.2` to ensure GPU compatibility.
 
-> **Note:** 
-* Choosing more CPUs and GPUs will speed up training but also consume more cluster resources.*
-* The Extra Modules field is essential if your model requires CUDA or other libraries. For example:
-* cuda/11.8 for older compatibility
-* cuda/12.2 for newer models like Qwen or Llama
-* You can check available modules with the command:
-   ```bash
-   module avail
-   ```
->
+> **Note:**
+> * Choosing more CPUs and GPUs will speed up training but also consume more cluster resources.
+> * The `Extra Modules` field is essential if your model requires CUDA or other libraries. For example:
+>     * `cuda/11.8` for older compatibility
+>     * `cuda/12.2` for newer models like Qwen or Llama
+> * You can check available modules with the command:
+>     ```bash
+>     module avail
+>     ```
 
 #### 2. Clone Repository
 ```bash
