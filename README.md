@@ -1,1 +1,1 @@
-# rag-chatbot
+# RAG Chatbot with Caching & Multi-Format Support
