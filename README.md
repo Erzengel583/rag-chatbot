@@ -76,11 +76,31 @@ Fill in the job configuration as shown below:
 >     module avail
 >     ```
 
-#### 2. Clone Repository
+#### 2. Obtain the Project Code
+
+**Option A: Using `git clone` **
+
 ```bash
 git clone https://github.com/Erzengel583/rag-chatbot
 ```
-Enter project directory
+
+**Option B: Download ZIP **
+
+* Go to the main page of the repository on GitHub.
+
+* Above the file list, click the green < > Code button.
+
+![Workflow](.github/images/github1.png)
+
+* Click on Download ZIP.
+
+![Workflow](.github/images/github2.png)
+
+* Unzip the downloaded file to your desired location.
+
+* Drag and Drop into your Jupyter Notebook session
+
+* Navigate to the project directory 
 
 ```bash
 cd rag-chatbot
@@ -108,10 +128,10 @@ pip install -r requirements.txt
 python app.py
 ```
 ##### The chatbot will:
-* 1. Ensure required directories exist.
-* 2. Build or update FAISS vector store from data/.
-* 3. Load embeddings + Qwen LLM.
-* 4. Start interactive chat loop.
+* Ensure required directories exist.
+* Build or update FAISS vector store from data/.
+* Load embeddings + Qwen LLM.
+* Start interactive chat loop.
 
 Type your question and press `Enter`.
 Type `exit` / `quit` / `bye` to stop the chatbot.
