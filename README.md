@@ -78,13 +78,13 @@ Fill in the job configuration as shown below:
 
 #### 2. Obtain the Project Code
 
-**Option A: Using `git clone` **
+**Option A: Using `git clone`**
 
 ```bash
 git clone https://github.com/Erzengel583/rag-chatbot
 ```
 
-**Option B: Download ZIP **
+**Option B: Download ZIP**
 
 * Go to the main page of the repository on GitHub.
 
@@ -136,18 +136,43 @@ pip install -r requirements.txt
 
 ## Running the Chatbot
 
+To start the chatbot, simply run:
+
 ```bash
 python app.py
 ```
 
 ##### The chatbot will:
 * Ensure required directories exist.
-* Build or update FAISS vector store from data/.
-* Load embeddings + Qwen LLM.
+* Build or update FAISS vector store from `data/`.
+* Load embeddings + LLM.
 * Start interactive chat loop.
+
+>Once you start running the chatbot for the first time, the LLM model weights will be automatically downloaded.
 
 Type your question and press `Enter`.
 Type `quit` to stop the chatbot.
+
+>[!NOTE]
+>Model Downloads:
+>The first time you run the chatbot, the LLM model weights (which can be many GBs) will be automatically downloaded.
+
+> - **On local machines:**  models are cached under ~/.cache/huggingface/hub/.
+
+> - **On HPC clusters:** the default is also $HOME/.cache/huggingface/hub/.
+>If you want to delete these cache
+>```bash
+> huggingface-cli delete-cache
+> ```
+
+### Optional: Login / Access Token
+
+Some models require authentication (e.g., private or gated Hugging Face models).
+If this applies to your setup, you need to log in with your Hugging Face account:
+
+```bash
+huggingface-cli login
+```
 
 ---
 
