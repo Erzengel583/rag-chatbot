@@ -98,22 +98,31 @@ git clone https://github.com/Erzengel583/rag-chatbot
 
 * Unzip the downloaded file to your desired location.
 
-* Drag and Drop into your Jupyter Notebook session
+* Drag and Drop `app.py` and `requirements.txt` into your Jupyter Notebook session
 
-* Navigate to the project directory 
-
-```bash
-cd rag-chatbot
-```
 #### 3. Create and Activate the Conda Environment
-```bash
-# Create environment (Python 3.10 recommended)
-conda create --name rag-chatbot-env python=3.10 -y
 
-# Activate the environment
+* Navigate to the project directory
+
+```bash
+cd your-project-directory
+```
+* create `data` folder for put your source documents
+
+```bash
+mkdir data
+```
+* Create conda environment
+
+```bash
+conda create --name rag-chatbot-env python=3.10 -y
+```
+
+* Activate environment
+
+```bash
 conda activate rag-chatbot-env
 ```
->Conda is used here because it simplifies managing dependencies
 
 #### 4. Install Dependencies
 Install all required packages from the `requirements.txt` file.
