@@ -178,3 +178,25 @@ retriever = db.as_retriever(search_kwargs={'k': 5})
 → Change k for number of retrieved chunks.
 
 >Higher k = more context but slower response. Lower k = faster but possibly missing details.
+
+* Prompt Templates
+```python
+system_prompt = (
+                    "คุณคือผู้ช่วยที่เป็นมิตร ตอบคำถามด้วยภาษาไทยหรือภาษาอังกฤษเท่านั้นเท่านั้น ห้ามใช้ภาษาอื่น"
+                    "ใช้ข้อมูลจาก Context ด้านล่าง ถ้าไม่พบข้อมูล ให้ตอบว่า "
+                    "'ไม่พบข้อมูลในเอกสารที่ให้ไว้'"
+                )
+```
+
+→ Change Prompt Templates for Thai.
+
+```python
+system_prompt = (
+                    "You are a helpful assistant. "
+                    "Answer ONLY in English. "
+                    "Use the provided context as your main source. "
+                    "If the context does not contain the answer, say: "
+                    "'No relevant information found in the provided documents.'"
+                )
+```
+→ Change Prompt Templates for English or other languages.
