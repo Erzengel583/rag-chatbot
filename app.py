@@ -146,7 +146,7 @@ def create_vector_db():
     print(f"✓ Split into {len(texts)} chunks.")
 
     print("\nCreating embeddings...")
-    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL, model_kwargs={'device': 'cuda'})
+    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL, model_kwargs={'device': 'cuda'})# edit device as needed(cpu/cuda)
 
     if os.path.exists(DB_FAISS_PATH):
         print("Updating existing FAISS vector store...")
