@@ -100,6 +100,7 @@ git clone https://github.com/Erzengel583/rag-chatbot
 
 * Drag and Drop `app.py` and `requirements.txt` into your Jupyter Notebook session
 
+
 #### 3. Create and Activate the Conda Environment
 
 * Navigate to the project directory
@@ -131,11 +132,14 @@ pip install -r requirements.txt
 ```
 >All required packages (LangChain, HuggingFace, FAISS, etc.) are listed in requirements.txt.
 
+---
+
 ## Running the Chatbot
 
 ```bash
 python app.py
 ```
+
 ##### The chatbot will:
 * Ensure required directories exist.
 * Build or update FAISS vector store from data/.
@@ -145,8 +149,12 @@ python app.py
 Type your question and press `Enter`.
 Type `quit` to stop the chatbot.
 
+---
+
 ## Customization (Models & Parameters)
+
 You can edit constants in `app.py`:
+
 * Embedding Model
 ```python
 EMBEDDING_MODEL = 'intfloat/multilingual-e5-large'
@@ -163,7 +171,9 @@ LLM_MODEL = "Qwen/Qwen1.5-7B-Chat"
 
 >Qwen is selected here because it supports Thai and multilingual input.
 
-* Chunking Parameters
+---
+
+* Chunking Parameters(in `create_vector_db()` function)
 ```pyhton
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 ```
@@ -171,7 +181,7 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=20
 
 >Larger chunks = fewer embeddings but less precise retrieval. Smaller chunks = more precise but larger vector DB.
 
-* Retriever Parameters
+* Retriever Parameters (in `setup_retriever()` funtion) 
 ```pyhton
 retriever = db.as_retriever(search_kwargs={'k': 5})
 ```
@@ -179,7 +189,7 @@ retriever = db.as_retriever(search_kwargs={'k': 5})
 
 >Higher k = more context but slower response. Lower k = faster but possibly missing details.
 
-* Prompt Templates
+* Prompt Templates (in `main()` function)
 ```python
 system_prompt = (
                     "คุณคือผู้ช่วยที่เป็นมิตร ตอบคำถามด้วยภาษาไทยหรือภาษาอังกฤษเท่านั้นเท่านั้น ห้ามใช้ภาษาอื่น"

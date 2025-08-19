@@ -141,7 +141,7 @@ def create_vector_db():
         return
 
     print(f"\nSplitting {len(all_documents)} new/modified document(s) into chunks...")
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200) #edit chunk size and overlap as needed
     texts = text_splitter.split_documents(all_documents)
     print(f"✓ Split into {len(texts)} chunks.")
 
@@ -187,7 +187,7 @@ def setup_retriever():
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL, model_kwargs={'device': 'cuda'})
     db = FAISS.load_local(DB_FAISS_PATH, embeddings, allow_dangerous_deserialization=True)
     print("✅ Vector Store and Embeddings are ready.")
-    return db.as_retriever(search_kwargs={'k': 5})
+    return db.as_retriever(search_kwargs={'k': 5}) # edit k as needed
 
 def detect_language(text: str) -> str:
     """Detect dominant language (Thai or English) based on character ratio."""
