@@ -143,7 +143,7 @@ python app.py
 * Start interactive chat loop.
 
 Type your question and press `Enter`.
-Type `exit` / `quit` / `bye` to stop the chatbot.
+Type `quit` to stop the chatbot.
 
 ## Customization (Models & Parameters)
 You can edit constants in `app.py`:
