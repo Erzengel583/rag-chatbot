@@ -107,7 +107,7 @@ git clone https://github.com/Erzengel583/rag-chatbot
 ```bash
 cd your-project-directory
 ```
-* create `data` folder for put your source documents
+* create `data` folder and put your source documents here
 
 ```bash
 mkdir data
