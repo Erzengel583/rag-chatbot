@@ -31,6 +31,14 @@ EMBEDDING_MODEL = 'intfloat/multilingual-e5-large'
 LLM_MODEL = "Qwen/Qwen1.5-7B-Chat"
 SUPPORTED_EXTENSIONS = ['.pdf', '.txt', '.doc', '.docx']
 
+# --- Tokenization Parameters ---
+CHUNK_SIZE = 1000
+CHUNK_OVERLAP = 200
+
+# k for retriever
+RETRIEVER_K = 5  # Number of documents to retrieve for each query
+
+
 # ==============================================================================
 # --- 2. HELPER FUNCTIONS (File Hashing, I/O, etc.) ---
 # ==============================================================================
@@ -141,7 +149,7 @@ def create_vector_db():
         return
 
     print(f"\nSplitting {len(all_documents)} new/modified document(s) into chunks...")
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200) #edit chunk size and overlap as needed
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size= CHUNK_SIZE, chunk_overlap= CHUNK_OVERLAP)
     texts = text_splitter.split_documents(all_documents)
     print(f"✓ Split into {len(texts)} chunks.")
 
@@ -187,7 +195,7 @@ def setup_retriever():
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL, model_kwargs={'device': 'cuda'})
     db = FAISS.load_local(DB_FAISS_PATH, embeddings, allow_dangerous_deserialization=True)
     print("✅ Vector Store and Embeddings are ready.")
-    return db.as_retriever(search_kwargs={'k': 5}) # edit k as needed
+    return db.as_retriever(search_kwargs={'k': RETRIEVER_K}) 
 
 def detect_language(text: str) -> str:
     """Detect dominant language (Thai or English) based on character ratio."""

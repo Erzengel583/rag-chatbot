@@ -197,17 +197,20 @@ LLM_MODEL = "Qwen/Qwen1.5-7B-Chat"
 
 ---
 
-* Chunking Parameters(in `create_vector_db()` function)
+* Chunking Parameters
 ```pyhton
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+# --- Tokenization Parameters ---
+CHUNK_SIZE = 1000
+CHUNK_OVERLAP = 200
 ```
 → Adjust for document splitting.
 
 >Larger chunks = fewer embeddings but less precise retrieval. Smaller chunks = more precise but larger vector DB.
 
-* Retriever Parameters (in `setup_retriever()` funtion) 
+* Retriever Parameters 
 ```pyhton
-retriever = db.as_retriever(search_kwargs={'k': 5})
+# k for retriever
+RETRIEVER_K = 5  
 ```
 → Change k for number of retrieved chunks.
 
