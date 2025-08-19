@@ -158,6 +158,7 @@ Type `quit` to stop the chatbot.
 >The first time you run the chatbot, the LLM model weights (which can be many GBs) will be automatically downloaded.
 > - **On local machines:**  models are cached under ~/.cache/huggingface/hub/.
 > - **On HPC clusters:** the default is also $HOME/.cache/huggingface/hub/.
+>
 >If you want to delete these cache
 >```bash
 > huggingface-cli delete-cache
