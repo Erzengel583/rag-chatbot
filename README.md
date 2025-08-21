@@ -10,7 +10,7 @@ The chatbot supports Thai and multilingual Q&A, uses embeddings for context retr
 * **Multi-Document Support:** Handles documents in `PDF`, `DOCX`, and `TXT`.
 * **Vector Search with FAISS:** Stores embeddings in FAISS for fast document retrieval.
 >FAISS (Facebook AI Similarity Search) is optimized for similarity search, making large-scale retrieval very fast.
-* **Qwen LLM Integration:** Uses `Qwen/Qwen1.5-7B-Chat` for accurate and natural responses.
+* **Qwen LLM Integration:** Uses `Qwen/Qwen2-1.5B-Instruct` for accurate and natural responses.
 * **Multilingual Embeddings:** Powered by `intfloat/multilingual-e5-large` for cross-language search.
 ---
 
@@ -184,7 +184,7 @@ EMBEDDING_MODEL = 'intfloat/multilingual-e5-large'
 
 * LLM
 ```python
-LLM_MODEL = "Qwen/Qwen1.5-7B-Chat"
+LLM_MODEL = "Qwen/Qwen2-1.5B-Instruct"
 ```
 → Replace with another HuggingFace chat model (e.g. Llama2).
 
@@ -195,8 +195,8 @@ LLM_MODEL = "Qwen/Qwen1.5-7B-Chat"
 * Chunking Parameters
 ```pyhton
 # --- Tokenization Parameters ---
-CHUNK_SIZE = 1000
-CHUNK_OVERLAP = 200
+CHUNK_SIZE = 512
+CHUNK_OVERLAP = 100
 ```
 → Adjust for document splitting.
 
